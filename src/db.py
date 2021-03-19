@@ -19,7 +19,8 @@ def ensure_connection(func):
 def init_db(conn):
     c = conn.cursor()
 
-    c.execute('''
+    c.execute(
+        '''
         CREATE TABLE IF NOT EXISTS items (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             name        TEXT, 
@@ -27,22 +28,25 @@ def init_db(conn):
             price       INT, 
             data        TEXT
         )
-    ''')
+        ''')
 
-    c.execute('''
+    c.execute(
+        '''
             CREATE TABLE IF NOT EXISTS faq (
                 infa    TEXT 
             )
         ''')
 
-    c.execute('''
+    c.execute(
+        '''
             CREATE TABLE IF NOT EXISTS qiwi (
                 login    TEXT,
                 token    TEXT
             )
         ''')
 
-    c.execute('''
+    c.execute(
+        '''
             CREATE TABLE IF NOT EXISTS buyers (
                 users    TEXT,
                 iditem   TEXT,
@@ -57,4 +61,9 @@ def init_db(conn):
     conn.commit()
 
 
-
+@ensure_connection
+def add_data(conn, name: str, description: str, price: int, data: str):
+    c = conn.cursor()
+    c.execute('INSERT INTO items (name, description, price, data) '
+              'VALUES (?, ?)', (name, description, price, data))
+    conn.commit()
