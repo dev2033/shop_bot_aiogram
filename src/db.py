@@ -1,27 +1,34 @@
 import sqlite3
 
 
-def ensure_connection(func):
-    """ Декоратор для подключения к СУБД: открывает соединение,
-        выполняет переданную функцию и закрывает за собой соединение.
-        Потокобезопасно!
-    """
+# def ensure_connection(func):
+#     """ Декоратор для подключения к СУБД: открывает соединение,
+#         выполняет переданную функцию и закрывает за собой соединение.
+#         Потокобезопасно!
+#     """
+#
+#     def inner(*args, **kwargs):
+#         with sqlite3.connect('database.db') as conn:
+#             res = func(*args, conn=conn, **kwargs)
+#         return res
+#
+#     return inner
 
-    def inner(*args, **kwargs):
-        with sqlite3.connect('database.db') as conn:
-            res = func(*args, conn=conn, **kwargs)
-        return res
-
-    return inner
+_connection = None
 
 
-@ensure_connection
-def init_db(conn, forse: bool = False):
+def get_connection():
+    """Подключение к БД"""
+    global _connection
+    if _connection is None:
+        _connection = sqlite3.connect('database.db')
+    return _connection
+
+
+def init_db():
+    """Создание таблици в БД"""
+    conn = get_connection()
     c = conn.cursor()
-
-    if forse:
-        c.execute('DROP TABLE IF EXISTS items')
-
     c.execute(
         '''
         CREATE TABLE IF NOT EXISTS items (
@@ -32,16 +39,14 @@ def init_db(conn, forse: bool = False):
             data        TEXT
         )
         ''')
-    if forse:
-        c.execute('DROP TABLE IF EXISTS faq')
+
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS faq (
                 infa    TEXT 
             )
         ''')
-    if forse:
-        c.execute('DROP TABLE IF EXISTS qiwi')
+
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS qiwi (
@@ -49,8 +54,7 @@ def init_db(conn, forse: bool = False):
                 token    TEXT
             )
         ''')
-    if forse:
-        c.execute('DROP TABLE IF EXISTS buyers')
+
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS buyers (
@@ -67,9 +71,13 @@ def init_db(conn, forse: bool = False):
     conn.commit()
 
 
-@ensure_connection
-def add_data(conn, name: str, description: str, price: int, data: str):
+def add_data(name: str, description: str, price: int, data: str):
+    """Добавление данных о товаре"""
+    conn = get_connection()
     c = conn.cursor()
-    c.executemany('INSERT INTO items (name, description, price, data) '
-                  'VALUES (?, ?, ?, ?)', (name, description, price, data))
+    c.execute(
+        '''INSERT INTO items 
+           (name, description, price, data)
+           VALUES (?, ?, ?, ?)
+        ''', (name, description, price, data))
     conn.commit()

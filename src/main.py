@@ -8,9 +8,10 @@ from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ParseMode, CallbackQuery
 
+from c_logging import logger
 from keyboards import user_keyboard, admin_keyboard
 from dialogs import msg
-
+from db import add_data, init_db
 
 API_TOKEN = os.getenv("TOKEN_BOT")
 ACCESS_ID = os.getenv('ADMIN_ID')
@@ -86,7 +87,7 @@ async def add_item_description(message: types.Message, state: FSMContext):
 async def add_item_price(message: types.Message, state: FSMContext):
     global item_price
     item_price = message.text
-    await state.update_data(answer2=item_price)
+    await state.update_data(answer2=int(item_price))
     await message.answer('Введите данные товара (название|артикул)')
     await CellarImport.data_product.set()
 
@@ -96,10 +97,18 @@ async def add_item_data(message: types.Message, state: FSMContext):
     global item_data
     item_data = message.text
     await state.update_data(answer2=item_data)
-    # print(f"Название - {item_name}\n"
-    #       f"Описание - {item_description}\n"
-    #       f"Цена - {item_price}\n"
-    #       f"Данные - {item_data}")
+    try:
+        init_db()
+        add_data(item_name, item_description, item_price, item_data)
+        logger.info('Product data added successfully')
+        await message.answer(f'Данные успешно добавлены!'
+                             f'\nНазвание - {item_name};'
+                             f'\nОписание - {item_description};'
+                             f'\nЦена - {item_price};'
+                             f'\nДанные - {item_data}.')
+    except Exception as e:
+        logger.info('Product data added successfully' + str(e))
+        await message.answer('Возникла ошибка при добавлении товара')
     await state.finish()
 
 
