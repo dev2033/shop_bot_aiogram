@@ -85,7 +85,8 @@ def add_data(name: str, description: str, price: int, data: str):
     conn = get_connection()
     c = conn.cursor()
     c.execute(
-        '''INSERT INTO items 
+        '''
+           INSERT INTO items 
            (name, description, price, data)
            VALUES (?, ?, ?, ?)
         ''', (name, description, price, data))
@@ -96,14 +97,39 @@ def change_faq(about: str):
     """Изменение FAQ"""
     conn = get_connection()
     c = conn.cursor()
-    c.execute('''SELECT * FROM faq''')
+    c.execute(
+        '''
+            SELECT * FROM faq
+        '''
+    )
     while True:
         row = c.fetchone()
         if row == None:
             break
         c.execute(
             '''
-            UPDATE faq SET about = ? WHERE about = ?
+                UPDATE faq SET about = ? WHERE about = ?
             ''', (about, row[0])
         )
     conn.commit()
+
+
+def remove_all_products_db():
+    """Удаление всех товаров из БД"""
+    conn = get_connection()
+    c = conn.cursor()
+    all_items = c.execute(
+        '''
+        SELECT * FROM items
+        '''
+    ).fetchall()
+
+    count = 0
+    for row in all_items:
+        c.execute(
+            '''
+                DELETE FROM items WHERE id = ?
+            ''', (row[0],)
+        )
+        conn.commit()
+        count += 1

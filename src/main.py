@@ -8,9 +8,9 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, CallbackQuery
 
 from c_logging import logger
-from keyboards import user_keyboard, admin_keyboard
+from keyboards import user_keyboard, admin_keyboard, delete_confirmation
 from dialogs import msg
-from db import add_data, init_db, change_faq
+from db import add_data, init_db, change_faq, remove_all_products_db
 from states import ProductState, QiwiState, FaqState
 
 API_TOKEN = os.getenv("TOKEN_BOT")
@@ -126,6 +126,39 @@ async def update_faq(message: types.Message, state: FSMContext):
         logger.info('An error occurred while adding the FAQ' + str(e))
         await message.answer('При добавление/обновления FAQ, произошла ОШИБКА!')
     await state.finish()
+
+
+@dp.message_handler(lambda message: message.text == msg.remove_all_product_m)
+async def remove_all_products(message: types.Message):
+    await message.answer(
+        '😱 Вы действительно хотите удалить все товара???',
+        reply_markup=delete_confirmation
+    )
+
+
+@dp.callback_query_handler(text="yes_delete_all_items")
+async def remove_all_products_yes(call: CallbackQuery):
+    try:
+        init_db()
+        remove_all_products_db()
+        await call.message.answer('🎉 Все товары были удалены!')
+        logger.info('All items have been removed')
+    except Exception as e:
+        logger.error('Error while deleting an item' + str(e))
+
+
+@dp.callback_query_handler(text="no_delete_all_items")
+async def remove_all_products_yes(call: CallbackQuery):
+    await call.message.delete()
+    await call.message.answer('Вы отменили удаление всех товаров! \n\n'
+                              'Продолжаем работу')
+
+
+@dp.callback_query_handler(text="back_btn")
+async def back_button(call: CallbackQuery):
+    await call.message.delete()
+    await call.message.answer('Вы отменили удаление всех товаров! \n\n'
+                              'Продолжаем работу')
 
 
 if __name__ == '__main__':

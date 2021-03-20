@@ -24,3 +24,19 @@ admin_keyboard.add(add_product_b, remove_product_b)
 admin_keyboard.add(remove_all_product_b)
 admin_keyboard.add(change_qiwi_b)
 admin_keyboard.add(check_qiwi_b)
+
+delete_confirmation = InlineKeyboardMarkup()
+yes_button = InlineKeyboardButton(
+    msg.yes_delete_all_item,
+    callback_data='yes_delete_all_items'
+)
+no_button = InlineKeyboardButton(
+    msg.no_delete_all_item,
+    callback_data='no_delete_all_items'
+)
+back_button = InlineKeyboardButton(
+    msg.back_msg,
+    callback_data='back_btn'
+)
+delete_confirmation.add(yes_button, no_button)
+delete_confirmation.add(back_button)

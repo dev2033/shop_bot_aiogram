@@ -12,5 +12,9 @@ class Messages:
     change_qiwi_m: str = "🔏 Изменить QIWI кошелёк"
     check_qiwi_m: str = "🔐 Проверить QIWI кошелёк"
 
+    yes_delete_all_item: str = "❌ Да, удалить"
+    no_delete_all_item: str = "🙅‍♂️ Не удалять!"
+    back_msg: str = "🔙 Назад"
+
 
 msg = Messages()
