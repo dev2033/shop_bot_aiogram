@@ -3,6 +3,7 @@ import time
 
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.contrib.middlewares.logging import LoggingMiddleware
 from aiogram.dispatcher import FSMContext
 from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ParseMode, CallbackQuery
@@ -18,16 +19,17 @@ ACCESS_ID = os.getenv('ADMIN_ID')
 storage = MemoryStorage()
 bot = Bot(token=API_TOKEN)
 dp = Dispatcher(bot, storage=storage)
-
+dp.middleware.setup(LoggingMiddleware())
 # if message.from_user.id != int(ACCESS_ID):
 #     await message.answer("ты не админ", parse_mode=ParseMode.MARKDOWN)
 # else:
 
 
 class CellarImport(StatesGroup):
-    item = State()
-    volume = State()
-    count = State()
+    name_product = State()
+    description_product = State()
+    price_product = State()
+    data_product = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -55,26 +57,50 @@ async def get_products(message: types.Message):
                              reply_markup=admin_keyboard)
 
 
-@dp.message_handler(commands=['add'], state=None)
-async def enter_item(message: types.Message):
-    await message.answer('Как назовёте позицию?')
-    await CellarImport.item.set()
+@dp.message_handler(lambda message: message.text == msg.add_product_m,
+                    state=None)
+async def add_product(message: types.Message):
+    await message.answer('Введите название товара')
+    await CellarImport.name_product.set()
 
 
-@dp.message_handler(state=CellarImport.item)
-async def enter_volume(message: types.Message, state: FSMContext):
-    answer = message.text
-    await state.update_data(answer1=answer)
-    await message.answer('Объём?')
-    await CellarImport.volume.set()
+@dp.message_handler(state=CellarImport.name_product)
+async def add_item_name(message: types.Message, state: FSMContext):
+    global item_name
+    item_name = message.text
+    await state.update_data(answer1=item_name)
+    await message.answer('Введите описание товара')
+    await CellarImport.description_product.set()
 
 
-@dp.message_handler(state=CellarImport.volume)
-async def enter_volume(message: types.Message, state: FSMContext):
-    answer = message.text
-    await state.update_data(answer2=answer)
-    await message.answer('Количество?')
-    await CellarImport.count.set()
+@dp.message_handler(state=CellarImport.description_product)
+async def add_item_description(message: types.Message, state: FSMContext):
+    global item_description
+    item_description = message.text
+    await state.update_data(answer2=item_description)
+    await message.answer('Введите цену товара')
+    await CellarImport.price_product.set()
+
+
+@dp.message_handler(state=CellarImport.price_product)
+async def add_item_price(message: types.Message, state: FSMContext):
+    global item_price
+    item_price = message.text
+    await state.update_data(answer2=item_price)
+    await message.answer('Введите данные товара (название|артикул)')
+    await CellarImport.data_product.set()
+
+
+@dp.message_handler(state=CellarImport.data_product)
+async def add_item_data(message: types.Message, state: FSMContext):
+    global item_data
+    item_data = message.text
+    await state.update_data(answer2=item_data)
+    # print(f"Название - {item_name}\n"
+    #       f"Описание - {item_description}\n"
+    #       f"Цена - {item_price}\n"
+    #       f"Данные - {item_data}")
+    await state.finish()
 
 
 if __name__ == '__main__':

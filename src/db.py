@@ -6,18 +6,21 @@ def ensure_connection(func):
         выполняет переданную функцию и закрывает за собой соединение.
         Потокобезопасно!
     """
+
     def inner(*args, **kwargs):
         with sqlite3.connect('database.db') as conn:
-            kwargs['conn'] = conn
-            res = func(*args, **kwargs)
+            res = func(*args, conn=conn, **kwargs)
         return res
 
     return inner
 
 
 @ensure_connection
-def init_db(conn):
+def init_db(conn, forse: bool = False):
     c = conn.cursor()
+
+    if forse:
+        c.execute('DROP TABLE IF EXISTS items')
 
     c.execute(
         '''
@@ -29,14 +32,16 @@ def init_db(conn):
             data        TEXT
         )
         ''')
-
+    if forse:
+        c.execute('DROP TABLE IF EXISTS faq')
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS faq (
                 infa    TEXT 
             )
         ''')
-
+    if forse:
+        c.execute('DROP TABLE IF EXISTS qiwi')
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS qiwi (
@@ -44,7 +49,8 @@ def init_db(conn):
                 token    TEXT
             )
         ''')
-
+    if forse:
+        c.execute('DROP TABLE IF EXISTS buyers')
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS buyers (
@@ -64,6 +70,6 @@ def init_db(conn):
 @ensure_connection
 def add_data(conn, name: str, description: str, price: int, data: str):
     c = conn.cursor()
-    c.execute('INSERT INTO items (name, description, price, data) '
-              'VALUES (?, ?)', (name, description, price, data))
+    c.executemany('INSERT INTO items (name, description, price, data) '
+                  'VALUES (?, ?, ?, ?)', (name, description, price, data))
     conn.commit()
