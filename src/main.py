@@ -94,7 +94,7 @@ async def add_item_data(message: types.Message, state: FSMContext):
         init_db()
         add_data(item_name, item_description, item_price, item_data)
         logger.info('Product data added successfully')
-        await message.answer(f'Данные успешно добавлены!'
+        await message.answer(f'Данные успешно добавлены!\n'
                              f'\nНазвание - {item_name};'
                              f'\nОписание - {item_description};'
                              f'\nЦена - {item_price};'
@@ -108,12 +108,14 @@ async def add_item_data(message: types.Message, state: FSMContext):
 @dp.message_handler(lambda message: message.text == msg.change_faq_m,
                     state=None)
 async def add_faq(message: types.Message):
+    init_db()
     await message.answer('Введите описание магазина (FAQ)')
     await FaqState.upd_faq.set()
 
 
 @dp.message_handler(state=FaqState.upd_faq)
 async def update_faq(message: types.Message, state: FSMContext):
+
     about = message.text
     await state.update_data(answer2=about)
     try:
