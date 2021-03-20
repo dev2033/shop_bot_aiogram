@@ -1,5 +1,6 @@
 import os
 import time
+import requests
 
 from aiogram import Bot, Dispatcher, executor, types
 from aiogram.contrib.fsm_storage.memory import MemoryStorage
@@ -10,7 +11,7 @@ from aiogram.types import ParseMode, CallbackQuery
 from c_logging import logger
 from keyboards import user_keyboard, admin_keyboard, delete_confirmation
 from dialogs import msg
-from db import add_data, init_db, change_faq, remove_all_products_db
+from db import add_data, init_db, change_faq, remove_all_products_db, get_faq
 from states import ProductState, QiwiState, FaqState
 
 API_TOKEN = os.getenv("TOKEN_BOT")
@@ -144,6 +145,13 @@ async def remove_all_products(message: types.Message):
     )
 
 
+@dp.message_handler(lambda message: message.text == msg.check_faq_m)
+async def displays_faq(message: types.Message):
+    """Отправляет FAQ"""
+    await message.answer(f'⭐️ {get_faq()}')
+
+
+# Обработка инлайн кнопок
 @dp.callback_query_handler(text="yes_delete_all_items")
 async def remove_all_products_yes(call: CallbackQuery):
     """Обработка инлайн кнопки на подтверждение удаление товара"""

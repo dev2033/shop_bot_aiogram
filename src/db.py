@@ -133,3 +133,18 @@ def remove_all_products_db():
         )
         conn.commit()
         count += 1
+
+
+def get_faq():
+    """Получение faq из БД"""
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(
+        '''
+        SELECT * FROM faq
+        '''
+    )
+    row = c.fetchall()
+    for i in row:
+        return i[0]
+
