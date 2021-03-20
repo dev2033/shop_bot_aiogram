@@ -26,47 +26,56 @@ def get_connection():
 
 
 def init_db():
-    """Создание таблици в БД"""
+    """Создание таблиц в БД"""
     conn = get_connection()
     c = conn.cursor()
     c.execute(
         '''
-        CREATE TABLE IF NOT EXISTS items (
-            id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            name        TEXT, 
-            description TEXT, 
-            price       INT, 
-            data        TEXT
+            CREATE TABLE IF NOT EXISTS items (
+                id              INTEGER PRIMARY KEY AUTOINCREMENT,
+                name            TEXT, 
+                description     TEXT, 
+                price           INT, 
+                data            TEXT
         )
-        ''')
+        '''
+    )
 
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS faq (
-                infa    TEXT 
+                about       TEXT 
             )
-        ''')
+        '''
+    )
 
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS qiwi (
-                login    TEXT,
-                token    TEXT
+                login       TEXT,
+                token       TEXT
             )
-        ''')
+        '''
+    )
+    c.execute(
+        '''
+            INSERT INTO faq VALUES('🔘 Информация. Измените её в главном меню')
+        '''
+    )
 
     c.execute(
         '''
             CREATE TABLE IF NOT EXISTS buyers (
-                users    TEXT,
-                iditem   TEXT,
-                comment  TEXT,
-                amount   TEXT,
-                receipt  TEXT,
+                users       TEXT,
+                iditem      TEXT,
+                comment     TEXT,
+                amount      TEXT,
+                receipt     TEXT,
                 randomnum,
                 data TEXT
             )
-        ''')
+        '''
+    )
 
     conn.commit()
 
@@ -80,4 +89,21 @@ def add_data(name: str, description: str, price: int, data: str):
            (name, description, price, data)
            VALUES (?, ?, ?, ?)
         ''', (name, description, price, data))
+    conn.commit()
+
+
+def change_faq(about: str):
+    """Изменение FAQ"""
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute('''SELECT * FROM faq''')
+    while True:
+        row = c.fetchone()
+        if row == None:
+            break
+        c.execute(
+            '''
+            UPDATE faq SET about = ? WHERE about = ?
+            ''', (about, row[0])
+        )
     conn.commit()
