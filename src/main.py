@@ -2,6 +2,9 @@ import os
 import time
 
 from aiogram import Bot, Dispatcher, executor, types
+from aiogram.contrib.fsm_storage.memory import MemoryStorage
+from aiogram.dispatcher import FSMContext
+from aiogram.dispatcher.filters.state import StatesGroup, State
 from aiogram.types import ParseMode, CallbackQuery
 
 from keyboards import user_keyboard, admin_keyboard
@@ -11,12 +14,20 @@ from dialogs import msg
 API_TOKEN = os.getenv("TOKEN_BOT")
 ACCESS_ID = os.getenv('ADMIN_ID')
 
+
+storage = MemoryStorage()
 bot = Bot(token=API_TOKEN)
-dp = Dispatcher(bot)
+dp = Dispatcher(bot, storage=storage)
 
 # if message.from_user.id != int(ACCESS_ID):
 #     await message.answer("ты не админ", parse_mode=ParseMode.MARKDOWN)
 # else:
+
+
+class CellarImport(StatesGroup):
+    item = State()
+    volume = State()
+    count = State()
 
 
 @dp.message_handler(commands=['start'])
@@ -44,17 +55,26 @@ async def get_products(message: types.Message):
                              reply_markup=admin_keyboard)
 
 
-@dp.message_handler(lambda message: message.text == msg.add_product_m)
-async def add_product(message: types.Message):
-    dp.register_message_handler(message)
-    await message.answer()
+@dp.message_handler(commands=['add'], state=None)
+async def enter_item(message: types.Message):
+    await message.answer('Как назовёте позицию?')
+    await CellarImport.item.set()
 
 
-async def add_item_name(message: types.Message):
-    global item_name
-    item_name = message.text
-    dp.poll_answer_handlers(message, add_item_description)
-    await message.answer(message.chat.id, "📘 Введите название товара")
+@dp.message_handler(state=CellarImport.item)
+async def enter_volume(message: types.Message, state: FSMContext):
+    answer = message.text
+    await state.update_data(answer1=answer)
+    await message.answer('Объём?')
+    await CellarImport.volume.set()
+
+
+@dp.message_handler(state=CellarImport.volume)
+async def enter_volume(message: types.Message, state: FSMContext):
+    answer = message.text
+    await state.update_data(answer2=answer)
+    await message.answer('Количество?')
+    await CellarImport.count.set()
 
 
 if __name__ == '__main__':
