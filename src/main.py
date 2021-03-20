@@ -41,6 +41,7 @@ async def send_welcome(message: types.Message):
 
 @dp.message_handler(lambda message: message.text == msg.product_m)
 async def get_products(message: types.Message):
+    """Обработка кнопки на вывод всех товаров"""
     if message.from_user.id != int(ACCESS_ID):
         product_message = "Список товаров"
         await message.answer(product_message, parse_mode=ParseMode.MARKDOWN,
@@ -54,12 +55,14 @@ async def get_products(message: types.Message):
 @dp.message_handler(lambda message: message.text == msg.add_product_m,
                     state=None)
 async def add_product(message: types.Message):
+    """Начинает добавление нового товара"""
     await message.answer('Введите название товара')
     await ProductState.name_product.set()
 
 
 @dp.message_handler(state=ProductState.name_product)
 async def add_item_name(message: types.Message, state: FSMContext):
+    """Добавляет название для нового товара"""
     global item_name
     item_name = message.text
     await state.update_data(answer1=item_name)
@@ -69,6 +72,7 @@ async def add_item_name(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=ProductState.description_product)
 async def add_item_description(message: types.Message, state: FSMContext):
+    """Добавляет описание для нового товара"""
     global item_description
     item_description = message.text
     await state.update_data(answer2=item_description)
@@ -78,6 +82,7 @@ async def add_item_description(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=ProductState.price_product)
 async def add_item_price(message: types.Message, state: FSMContext):
+    """Добавляет цену для нового товара"""
     global item_price
     item_price = message.text
     await state.update_data(answer2=int(item_price))
@@ -87,6 +92,7 @@ async def add_item_price(message: types.Message, state: FSMContext):
 
 @dp.message_handler(state=ProductState.data_product)
 async def add_item_data(message: types.Message, state: FSMContext):
+    """Добавляет новый товар в базу данных"""
     global item_data
     item_data = message.text
     await state.update_data(answer2=item_data)
@@ -108,6 +114,7 @@ async def add_item_data(message: types.Message, state: FSMContext):
 @dp.message_handler(lambda message: message.text == msg.change_faq_m,
                     state=None)
 async def add_faq(message: types.Message):
+    """Запрашивает ввод нового описание магазина (FAQ)"""
     init_db()
     await message.answer('Введите описание магазина (FAQ)')
     await FaqState.upd_faq.set()
@@ -115,7 +122,7 @@ async def add_faq(message: types.Message):
 
 @dp.message_handler(state=FaqState.upd_faq)
 async def update_faq(message: types.Message, state: FSMContext):
-
+    """Обновление данных про описание магазина (FAQ)"""
     about = message.text
     await state.update_data(answer2=about)
     try:
@@ -130,6 +137,7 @@ async def update_faq(message: types.Message, state: FSMContext):
 
 @dp.message_handler(lambda message: message.text == msg.remove_all_product_m)
 async def remove_all_products(message: types.Message):
+    """Отправляет инлайн кнопки на удаление товаров"""
     await message.answer(
         '😱 Вы действительно хотите удалить все товара???',
         reply_markup=delete_confirmation
@@ -138,6 +146,7 @@ async def remove_all_products(message: types.Message):
 
 @dp.callback_query_handler(text="yes_delete_all_items")
 async def remove_all_products_yes(call: CallbackQuery):
+    """Обработка инлайн кнопки на подтверждение удаление товара"""
     try:
         init_db()
         remove_all_products_db()
@@ -149,6 +158,7 @@ async def remove_all_products_yes(call: CallbackQuery):
 
 @dp.callback_query_handler(text="no_delete_all_items")
 async def remove_all_products_yes(call: CallbackQuery):
+    """Обработка инлайн кнопки на отказ от удаления всех товаров"""
     await call.message.delete()
     await call.message.answer('Вы отменили удаление всех товаров! \n\n'
                               'Продолжаем работу')
@@ -156,6 +166,7 @@ async def remove_all_products_yes(call: CallbackQuery):
 
 @dp.callback_query_handler(text="back_btn")
 async def back_button(call: CallbackQuery):
+    """Обработка инлайн кнопки на кнопку НАЗАД"""
     await call.message.delete()
     await call.message.answer('Вы отменили удаление всех товаров! \n\n'
                               'Продолжаем работу')
