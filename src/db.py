@@ -37,6 +37,7 @@ def init_db():
                 description     TEXT, 
                 price           INT, 
                 data            TEXT
+                photo           TEXT
         )
         '''
     )

@@ -7,6 +7,7 @@ class ProductState(StatesGroup):
     description_product = State()
     price_product = State()
     data_product = State()
+    photo = State()
 
 
 class FaqState(StatesGroup):
@@ -18,6 +19,3 @@ class QiwiState(StatesGroup):
     """Стейт для Qiwi"""
     login = State()
     token = State()
-
-
-

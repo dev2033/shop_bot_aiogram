@@ -87,6 +87,21 @@ async def add_item_price(message: types.Message, state: FSMContext):
     global item_price
     item_price = message.text
     await state.update_data(answer2=int(item_price))
+    await message.answer('Пришлите фото товара!')
+    await ProductState.photo.set()
+
+
+@dp.message_handler(state=ProductState.photo,
+                    content_types=['photo'])
+async def add_item_photo(message: types.Message, state: FSMContext):
+    """Добавляет фото для нового товара"""
+    photo_id = message.photo[-1].file_id
+    print(photo_id)
+    data = await state.get_data()
+    photo: ProductState = data.get('photo')
+    photo.photo = photo_id
+    await state.update_data(answer2=item_data)
+    await message.answer_photo(photo=photo_id)
     await message.answer('Введите данные товара (название|артикул)')
     await ProductState.data_product.set()
 
