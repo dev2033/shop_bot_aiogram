@@ -40,3 +40,11 @@ back_button = InlineKeyboardButton(
 )
 delete_confirmation.add(yes_button, no_button)
 delete_confirmation.add(back_button)
+
+
+def get_product_keyboard(name_product: str, price_product: int, id: int):
+    products_key = InlineKeyboardMarkup()
+    name_product_btn = InlineKeyboardButton(
+        text='{id}) {name} - {price}'.format(id=id, name=name_product,
+                                             price=price_product))
+    return products_key.add(name_product_btn)

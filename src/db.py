@@ -1,6 +1,5 @@
 import sqlite3
 
-
 # def ensure_connection(func):
 #     """ Декоратор для подключения к СУБД: открывает соединение,
 #         выполняет переданную функцию и закрывает за собой соединение.
@@ -36,7 +35,7 @@ def init_db():
                 name            TEXT, 
                 description     TEXT, 
                 price           INT, 
-                data            TEXT
+                data            TEXT,
                 photo           TEXT
         )
         '''
@@ -81,16 +80,34 @@ def init_db():
     conn.commit()
 
 
-def add_data(name: str, description: str, price: int, data: str):
+def get_products():
+    """Выводит все продукты"""
+    conn = get_connection()
+    c = conn.cursor()
+    c.execute(
+        '''
+            SELECT * FROM items
+        '''
+    )
+    rows = c.fetchall()
+    msg = ''
+    for row in rows:
+
+
+
+get_products()
+
+
+def add_data(name: str, description: str, price: int, data: str, photo_id: str):
     """Добавление данных о товаре"""
     conn = get_connection()
     c = conn.cursor()
     c.execute(
         '''
            INSERT INTO items 
-           (name, description, price, data)
-           VALUES (?, ?, ?, ?)
-        ''', (name, description, price, data))
+           (name, description, price, data, photo)
+           VALUES (?, ?, ?, ?, ?)
+        ''', (name, description, price, data, photo_id))
     conn.commit()
 
 
@@ -148,4 +165,3 @@ def get_faq():
     row = c.fetchall()
     for i in row:
         return i[0]
-

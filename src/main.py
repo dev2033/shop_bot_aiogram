@@ -9,7 +9,8 @@ from aiogram.dispatcher import FSMContext
 from aiogram.types import ParseMode, CallbackQuery
 
 from c_logging import logger
-from keyboards import user_keyboard, admin_keyboard, delete_confirmation
+from keyboards import user_keyboard, admin_keyboard, delete_confirmation, \
+    get_product_keyboard
 from dialogs import msg
 from db import add_data, init_db, change_faq, remove_all_products_db, get_faq
 from states import ProductState, QiwiState, FaqState
@@ -95,12 +96,8 @@ async def add_item_price(message: types.Message, state: FSMContext):
                     content_types=['photo'])
 async def add_item_photo(message: types.Message, state: FSMContext):
     """Добавляет фото для нового товара"""
+    global photo_id
     photo_id = message.photo[-1].file_id
-    print(photo_id)
-    data = await state.get_data()
-    photo: ProductState = data.get('photo')
-    photo.photo = photo_id
-    await state.update_data(answer2=item_data)
     await message.answer_photo(photo=photo_id)
     await message.answer('Введите данные товара (название|артикул)')
     await ProductState.data_product.set()
@@ -114,13 +111,18 @@ async def add_item_data(message: types.Message, state: FSMContext):
     await state.update_data(answer2=item_data)
     try:
         init_db()
-        add_data(item_name, item_description, item_price, item_data)
+        add_data(item_name, item_description, item_price, item_data, photo_id)
         logger.info('Product data added successfully')
-        await message.answer(f'Данные успешно добавлены!\n'
-                             f'\nНазвание - {item_name};'
-                             f'\nОписание - {item_description};'
-                             f'\nЦена - {item_price};'
-                             f'\nДанные - {item_data}.')
+        await message.answer_photo(
+            photo=photo_id,
+            caption='Товар успешно добавлен!\n\n'
+                    'Название - {name}\n'
+                    'Цена - {price}\n'
+                    'Описание - {description}\n'
+                    'Данные - {data}'.format(name=item_name, price=item_price,
+                                             description=item_description,
+                                             data=item_data)
+        )
     except Exception as e:
         logger.info('Product data added successfully' + str(e))
         await message.answer('Возникла ошибка при добавлении товара')
@@ -163,7 +165,15 @@ async def remove_all_products(message: types.Message):
 @dp.message_handler(lambda message: message.text == msg.check_faq_m)
 async def displays_faq(message: types.Message):
     """Отправляет FAQ"""
-    await message.answer(f'⭐️ {get_faq()}')
+    await message.answer(f'⭐️ {get_faq()}',
+                         reply_markup=get_product_keyboard(''))
+
+
+@dp.message_handler(lambda message: message.text == msg.check_faq_m)
+async def displays_products(message: types.Message):
+    """Отправляет все продукты"""
+    pass
+    
 
 
 # Обработка инлайн кнопок
